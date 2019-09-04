@@ -7,30 +7,23 @@ export default {
       document.onmousemove = null;
     };
 
-    const startDrag = function(e) {
-      e.preventDefault();
-
+    const startDrag = function(img) {
       const offset = {};
-      const container = e.target.parentNode;
+      const container = img.parentNode;
 
-      mousePos.curX = mousePos.prevX - e.clientX;
-      mousePos.curY = mousePos.prevY - e.clientY;
-      mousePos.prevX = e.clientX;
-      mousePos.prevY = e.clientY;
-
-      offset.top = e.target.offsetTop - mousePos.curY;
-      offset.left = e.target.offsetLeft - mousePos.curX;
+      offset.top = img.offsetTop - mousePos.curY;
+      offset.left = img.offsetLeft - mousePos.curX;
 
       if (offset.top >= 0) {
         offset.top = 0;
-      } else if (offset.top < -e.target.offsetHeight + container.offsetHeight) {
-        offset.top = -e.target.offsetHeight + container.offsetHeight;
+      } else if (offset.top < -img.offsetHeight + container.offsetHeight) {
+        offset.top = -img.offsetHeight + container.offsetHeight;
       }
 
       if (offset.left >= 0) {
         offset.left = 0;
-      } else if (offset.left < -e.target.offsetWidth + container.offsetWidth) {
-        offset.left = -e.target.offsetWidth + container.offsetWidth;
+      } else if (offset.left < -img.offsetWidth + container.offsetWidth) {
+        offset.left = -img.offsetWidth + container.offsetWidth;
       }
 
       const children = el.querySelectorAll(".img img");
@@ -44,13 +37,42 @@ export default {
     el.addEventListener("mousedown", function(e) {
       e.preventDefault();
 
-      console.log(el !== e.target);
-
       mousePos.prevX = e.clientX;
       mousePos.prevY = e.clientY;
 
+      const img = e.target;
+
       document.onmouseup = stopDrag;
-      document.onmousemove = startDrag;
+      document.onmousemove = function(evt) {
+        evt.preventDefault();
+
+        mousePos.curX = mousePos.prevX - evt.clientX;
+        mousePos.curY = mousePos.prevY - evt.clientY;
+        mousePos.prevX = evt.clientX;
+        mousePos.prevY = evt.clientY;
+
+        startDrag(img);
+      };
+    });
+
+    el.addEventListener("touchstart", function(e) {
+      e.preventDefault();
+
+      mousePos.prevX = e.targetTouches[0].pageX;
+      mousePos.prevY = e.targetTouches[0].pageY;
+
+      const img = e.target;
+
+      el.addEventListener("touchmove", function(evt) {
+        evt.preventDefault();
+
+        mousePos.curX = mousePos.prevX - evt.targetTouches[0].pageX;
+        mousePos.curY = mousePos.prevY - evt.targetTouches[0].pageY;
+        mousePos.prevX = evt.targetTouches[0].pageX;
+        mousePos.prevY = evt.targetTouches[0].pageY;
+
+        startDrag(img);
+      });
     });
   }
 };

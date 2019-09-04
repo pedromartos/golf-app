@@ -1,18 +1,19 @@
 <template>
-  <div id="home" class="container-fluid">
+  <b-container fluid id="home">
     <h1>Golf</h1>
 
-    <div class="images" v-draggable>
-      <div
-        class="img"
-        :ref="`img-${index}`"
+    <b-row class="images px-1 px-md-3" v-draggable>
+      <b-col
+        cols="12"
+        md="4"
+        class="img px-0"
         v-for="(img, index) in images"
         :key="index"
       >
         <img :src="img" :id="`img-${index}`" />
-      </div>
-    </div>
-  </div>
+      </b-col>
+    </b-row>
+  </b-container>
 </template>
 
 <script>
@@ -37,18 +38,14 @@ export default {
 <style lang="scss">
 #home {
   .images {
-    width: 100%;
-    display: flex;
-    padding: 10px;
-
     .img {
-      width: 300px;
-      height: 300px;
+      height: 350px;
       overflow: hidden;
       flex: 0 0 auto;
       position: relative;
-      margin: 0 5px 0 0;
-      box-shadow: 0 0 0 1px #000;
+      margin: 0 0 0 0;
+      // box-shadow: 0 0 0 1px #fff;
+      border: 1px solid #fff;
 
       img {
         width: 900px;

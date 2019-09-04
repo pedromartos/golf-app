@@ -7,6 +7,10 @@ import store from "./store";
 import BootstrapVue from "bootstrap-vue";
 Vue.use(BootstrapVue);
 
+// Hammer.js
+import { VueHammer } from "vue2-hammer";
+Vue.use(VueHammer);
+
 Vue.config.productionTip = false;
 
 import Draggable from "./directives/draggable";
