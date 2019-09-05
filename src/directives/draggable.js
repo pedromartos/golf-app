@@ -1,5 +1,5 @@
 export default {
-  bind: function(el) {
+  bind: function(el, binding, vnode) {
     const mousePos = {};
 
     const stopDrag = function() {
@@ -9,22 +9,24 @@ export default {
 
     const startDrag = function(img) {
       const offset = {};
-      const container = img.parentNode;
+      // const container = img.parentNode;
 
       offset.top = img.offsetTop - mousePos.curY;
       offset.left = img.offsetLeft - mousePos.curX;
 
-      if (offset.top >= 0) {
-        offset.top = 0;
-      } else if (offset.top < -img.offsetHeight + container.offsetHeight) {
-        offset.top = -img.offsetHeight + container.offsetHeight;
-      }
+      vnode.context.$emit("drag", offset);
 
-      if (offset.left >= 0) {
-        offset.left = 0;
-      } else if (offset.left < -img.offsetWidth + container.offsetWidth) {
-        offset.left = -img.offsetWidth + container.offsetWidth;
-      }
+      // if (offset.top >= 0) {
+      //   offset.top = 0;
+      // } else if (offset.top < -img.offsetHeight + container.offsetHeight) {
+      //   offset.top = -img.offsetHeight + container.offsetHeight;
+      // }
+
+      // if (offset.left >= 0) {
+      //   offset.left = 0;
+      // } else if (offset.left < -img.offsetWidth + container.offsetWidth) {
+      //   offset.left = -img.offsetWidth + container.offsetWidth;
+      // }
 
       const children = el.querySelectorAll(".img img");
 
