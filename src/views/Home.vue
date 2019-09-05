@@ -1,5 +1,5 @@
 <template>
-  <b-container fluid id="home" v-on:drag="updatePosition($event)">
+  <b-container fluid id="home">
     <h1>
       Golf
 
@@ -12,16 +12,29 @@
       <b-button variant="danger" size="sm" @click="resetData">
         Reset Data
       </b-button>
+
+      &nbsp;
+
+      <b-button
+        :variant="isEnabled ? 'primary' : ''"
+        size="sm"
+        @click="toggleGestures"
+      >
+        Move/Zoom: {{ isEnabled ? "ON" : "OFF" }}
+      </b-button>
     </h1>
 
     <b-row>
-      <b-col>
+      <b-col cols="12">
+        Zoom:
+      </b-col>
+      <b-col cols="12">
         <b-form-input
           type="range"
           v-model="data.zoom.current"
           :min="data.zoom.min"
           :max="data.zoom.max"
-          step="1"
+          step="0.001"
         >
         </b-form-input>
       </b-col>
@@ -35,7 +48,14 @@
         v-for="(img, index) in images"
         :key="index"
       >
-        <b-img :src="img" :id="`img-${index}`" :style="imageStyles" />
+        <b-img
+          :src="img"
+          :id="`img-${index}`"
+          :style="imageStyles"
+          v-hammer:pinch="zoomImg"
+          v-hammer:pan="dragImg"
+          v-hammer:panstart="initDrag"
+        />
       </b-col>
     </b-row>
 
@@ -50,15 +70,17 @@ export default {
   name: "home",
   data: function() {
     return {
+      isEnabled: true,
+      mousePos: {},
       data: {
         imgDimensions: {
           width: null,
           height: null
         },
         zoom: {
-          current: "50",
-          min: "0",
-          max: "100"
+          current: "1",
+          min: "0.1",
+          max: "2"
         },
         boxWidth: null,
         position: {
@@ -78,8 +100,10 @@ export default {
   },
   computed: {
     imageStyles: function() {
+      const imgWidth = this.data.imgDimensions.width;
+
       return {
-        width: `${this.data.zoom.current}px`,
+        width: `${imgWidth * this.data.zoom.current}px`,
         top: `${this.data.position.top}px`,
         left: `${this.data.position.left}px`
       };
@@ -89,12 +113,63 @@ export default {
     }
   },
   methods: {
+    toggleGestures: function() {
+      const els = document.querySelectorAll(".img");
+
+      els.forEach(el => {
+        if (!this.isEnabled) {
+          el.classList.remove("disabled");
+        } else {
+          el.classList.add("disabled");
+        }
+      });
+
+      this.isEnabled = !this.isEnabled;
+    },
     showData: function() {
       this.$bvModal.show("data");
       localStorage.setItem("golf-data", JSON.stringify(this.data));
     },
     resetData: function() {
       localStorage.removeItem("golf-data");
+    },
+    zoomImg: function(e) {
+      if (e.scale > 1) {
+        this.data.zoom.current = 1 * this.data.zoom.current + e.scale / 1000;
+      } else {
+        this.data.zoom.current =
+          1 * this.data.zoom.current - (1 - e.scale) / 100;
+      }
+    },
+    initDrag: function(e) {
+      this.mousePos.prevX = e.changedPointers[0].pageX;
+      this.mousePos.prevY = e.changedPointers[0].pageY;
+    },
+    dragImg: function(e) {
+      e.preventDefault();
+
+      const img = e.target;
+
+      this.mousePos.curX = this.mousePos.prevX - e.changedPointers[0].pageX;
+      this.mousePos.curY = this.mousePos.prevY - e.changedPointers[0].pageY;
+      this.mousePos.prevX = e.changedPointers[0].pageX;
+      this.mousePos.prevY = e.changedPointers[0].pageY;
+
+      this.startDrag(img);
+    },
+    startDrag: function(img) {
+      const offset = {};
+
+      offset.top = img.offsetTop - this.mousePos.curY;
+      offset.left = img.offsetLeft - this.mousePos.curX;
+
+      this.data.position = offset;
+
+      const children = document.querySelectorAll(".img img");
+      children.forEach(child => {
+        child.style.top = offset.top + "px";
+        child.style.left = offset.left + "px";
+      });
     }
   },
   mounted: function() {
@@ -112,91 +187,12 @@ export default {
       imageObj.onload = function() {
         $this.data.imgDimensions.width = this.width;
         $this.data.imgDimensions.height = this.height;
-        $this.data.zoom.current = this.width;
-        $this.data.zoom.min = `${this.width * 0.1}`;
-        $this.data.zoom.max = `${this.width * 2}`;
+        // $this.data.zoom.current = this.width;
+        // $this.data.zoom.min = `${this.width * 0.1}`;
+        // $this.data.zoom.max = `${this.width * 2}`;
       };
       imageObj.src = this.images[0];
     }
-
-    // DRAGGABLE
-    const mousePos = {};
-    const el = document.getElementById("gallery");
-
-    const stopDrag = function() {
-      document.onmouseup = null;
-      document.onmousemove = null;
-    };
-
-    const startDrag = function(img) {
-      const offset = {};
-      // const container = img.parentNode;
-
-      offset.top = img.offsetTop - mousePos.curY;
-      offset.left = img.offsetLeft - mousePos.curX;
-
-      $this.data.position = offset;
-
-      // if (offset.top >= 0) {
-      //   offset.top = 0;
-      // } else if (offset.top < -img.offsetHeight + container.offsetHeight) {
-      //   offset.top = -img.offsetHeight + container.offsetHeight;
-      // }
-
-      // if (offset.left >= 0) {
-      //   offset.left = 0;
-      // } else if (offset.left < -img.offsetWidth + container.offsetWidth) {
-      //   offset.left = -img.offsetWidth + container.offsetWidth;
-      // }
-
-      const children = el.querySelectorAll(".img img");
-
-      children.forEach(child => {
-        child.style.top = offset.top + "px";
-        child.style.left = offset.left + "px";
-      });
-    };
-
-    el.addEventListener("mousedown", function(e) {
-      e.preventDefault();
-
-      mousePos.prevX = e.clientX;
-      mousePos.prevY = e.clientY;
-
-      const img = e.target;
-
-      document.onmouseup = stopDrag;
-      document.onmousemove = function(evt) {
-        evt.preventDefault();
-
-        mousePos.curX = mousePos.prevX - evt.clientX;
-        mousePos.curY = mousePos.prevY - evt.clientY;
-        mousePos.prevX = evt.clientX;
-        mousePos.prevY = evt.clientY;
-
-        startDrag(img);
-      };
-    });
-
-    el.addEventListener("touchstart", function(e) {
-      e.preventDefault();
-
-      mousePos.prevX = e.targetTouches[0].pageX;
-      mousePos.prevY = e.targetTouches[0].pageY;
-
-      const img = e.target;
-
-      el.addEventListener("touchmove", function(evt) {
-        evt.preventDefault();
-
-        mousePos.curX = mousePos.prevX - evt.targetTouches[0].pageX;
-        mousePos.curY = mousePos.prevY - evt.targetTouches[0].pageY;
-        mousePos.prevX = evt.targetTouches[0].pageX;
-        mousePos.prevY = evt.targetTouches[0].pageY;
-
-        startDrag(img);
-      });
-    });
   }
 };
 </script>
@@ -216,6 +212,21 @@ export default {
 
       img {
         position: absolute;
+        z-index: 1;
+      }
+
+      &.disabled {
+        &:before {
+          content: " ";
+          z-index: 2;
+          display: block;
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: transparent;
+        }
       }
     }
   }
