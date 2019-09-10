@@ -72,8 +72,10 @@
       </b-row>
     </div>
 
+    <div class="line"></div>
+
     <!-- IMAGE ADJUSTMENTS -->
-    <div class="adjust-images" v-show="false">
+    <div class="adjust-images" v-show="data.images.length > 0">
       <b-row>
         <b-col cols="12">
           Zoom:
@@ -95,7 +97,7 @@
           cols="12"
           md="4"
           class="img px-0"
-          v-for="(img, index) in images"
+          v-for="(img, index) in data.images"
           :key="index"
         >
           <b-img
@@ -114,8 +116,10 @@
       <code>{{ formattedData }}</code>
     </b-modal>
 
-    <b-modal id="frame-preview" title="Frame Preview">
-      <b-img class="image-preview" />
+    <b-modal id="frame-preview" title="Frame Preview" @ok="addImage">
+      <template v-slot:modal-ok>
+        Add Image
+      </template>
     </b-modal>
   </b-container>
 </template>
@@ -144,16 +148,9 @@ export default {
         position: {
           top: 0,
           left: 0
-        }
-      },
-      images: [
-        "http://fellipebrito.com/golf-swing/20190828/hit-to-the-right/1s.png",
-        "http://fellipebrito.com/golf-swing/20190828/hit-to-the-right/2b.png",
-        "http://fellipebrito.com/golf-swing/20190828/hit-to-the-right/3t.png",
-        "http://fellipebrito.com/golf-swing/20190828/hit-to-the-right/4d.png",
-        "http://fellipebrito.com/golf-swing/20190828/hit-to-the-right/5c.png",
-        "http://fellipebrito.com/golf-swing/20190828/hit-to-the-right/6f.png"
-      ]
+        },
+        images: []
+      }
     };
   },
   watch: {
@@ -211,9 +208,17 @@ export default {
       const dataURI = canvas.toDataURL("image/jpeg");
 
       setTimeout(() => {
-        const img = document.querySelector("#frame-preview .image-preview");
+        const img = document.createElement("img");
         img.src = dataURI;
+        document.querySelector("#frame-preview .modal-body").appendChild(img);
       }, 100);
+    },
+    addImage: function() {
+      const img = document.querySelector("#frame-preview .modal-body img");
+      this.data.imgDimensions.width = img.width;
+      this.data.imgDimensions.height = img.height;
+
+      this.data.images.push(img.src);
     },
     toggleGestures: function() {
       const els = document.querySelectorAll(".img");
@@ -281,7 +286,7 @@ export default {
     // RESTORE SAVED DATA
     if (localStorage.getItem("golf-data")) {
       this.data = JSON.parse(localStorage.getItem("golf-data"));
-    } else {
+    } else if (this.data.images.length > 0) {
       // Get image boxes size
       this.data.boxWidth = document.querySelector(".img").offsetWidth;
 
@@ -294,7 +299,7 @@ export default {
         // $this.data.zoom.min = `${this.width * 0.1}`;
         // $this.data.zoom.max = `${this.width * 2}`;
       };
-      imageObj.src = this.images[0];
+      imageObj.src = this.data.images[0];
     }
   }
 };
@@ -302,6 +307,12 @@ export default {
 
 <style lang="scss">
 #home {
+  .line {
+    width: 100%;
+    height: 2px;
+    background-color: #e6e6e6;
+    margin: 20px 0;
+  }
   .video-player {
     background-color: #e6e6e6;
     padding-top: 10px;
