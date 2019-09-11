@@ -1,5 +1,6 @@
 <template>
   <b-container fluid id="home">
+    <h1>Welcome, user.</h1>
     <h1>
       Golf
 
