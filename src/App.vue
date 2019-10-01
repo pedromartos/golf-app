@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <b-navbar toggleable="md" type="dark" variant="info">
-      <b-navbar-brand :to="{ name: 'home' }">App Name</b-navbar-brand>
+      <b-navbar-brand :to="{ name: 'home' }">Golf App</b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
@@ -11,7 +11,7 @@
         </b-navbar-nav>
 
         <b-navbar-nav class="ml-auto">
-          <b-nav-item-dropdown text="Image Groups" right>
+          <b-nav-item-dropdown text="Image Groups" right v-if="isLoggedIn">
             <b-dropdown-item :to="{ name: 'new-group' }">
               <fa-icon icon="plus" />
               Create New Image Group
@@ -23,9 +23,9 @@
             </b-dropdown-item>
           </b-nav-item-dropdown>
 
-          <b-button href="#" variant="light">
-            <fa-icon icon="sign-in-alt"></fa-icon>
-            Login
+          <b-button @click="login" variant="primary" size="sm">
+            <fa-icon :icon="['fab', 'facebook-square']"></fa-icon>
+            Login with Facebook
           </b-button>
         </b-navbar-nav>
       </b-collapse>
@@ -34,6 +34,59 @@
     <router-view class="container" />
   </div>
 </template>
+
+<script>
+export default {
+  name: "App",
+  computed: {
+    isLoggedIn: function() {
+      return this.$store.getters["auth/isLoggedIn"];
+    }
+  },
+  methods: {
+    login: function() {
+      window.FB.login(
+        response => {
+          this.$store.dispatch("auth/facebookLogin", response);
+        },
+        { scope: "public_profile,email" }
+      );
+    },
+    checkLoginState: function() {
+      window.FB.getLoginStatus(response => {
+        this.$store.dispatch("auth/facebookLogin", response);
+      });
+    }
+  },
+  mounted: function() {
+    window.fbAsyncInit = () => {
+      window.FB.init({
+        appId: "501952337325008",
+        cookie: true,
+        xfbml: true,
+        version: "v2.2"
+      });
+
+      window.FB.AppEvents.logPageView();
+
+      this.checkLoginState();
+    };
+  },
+  created: function() {
+    (function(d, s, id) {
+      var js,
+        fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) {
+        return;
+      }
+      js = d.createElement(s);
+      js.id = id;
+      js.src = "https://connect.facebook.net/en_US/sdk.js";
+      fjs.parentNode.insertBefore(js, fjs);
+    })(document, "script", "facebook-jssdk");
+  }
+};
+</script>
 
 <style lang="scss">
 @import "node_modules/bootstrap/scss/bootstrap";
@@ -48,6 +101,14 @@ body {
 
 .navbar {
   margin-bottom: 20px;
+}
+
+.btn {
+  &.btn-sm {
+    * {
+      vertical-align: middle;
+    }
+  }
 }
 
 .top-spaced-border {

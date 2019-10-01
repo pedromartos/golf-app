@@ -1,19 +1,32 @@
 import Vue from "vue";
 import Router from "vue-router";
 import Dashboard from "./views/Dashboard.vue";
+import Home from "./views/Home.vue";
+import store from "./store";
 
 Vue.use(Router);
 
-export default new Router({
+const router = new Router({
   routes: [
     {
-      path: "/",
+      path: "/home",
       name: "home",
-      component: Dashboard
+      component: Home
+    },
+    {
+      path: "/welcome",
+      name: "dashboard",
+      component: Dashboard,
+      meta: {
+        requiresAuth: true
+      }
     },
     {
       path: "/image-groups/",
       component: () => import("@/views/image-groups/ImageGroups.vue"),
+      meta: {
+        requiresAuth: true
+      },
       children: [
         {
           path: "new",
@@ -35,3 +48,18 @@ export default new Router({
     }
   ]
 });
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (store.getters["auth/isLoggedIn"]) {
+      next();
+      return;
+    }
+
+    next({ name: "home", params: { authError: true } });
+  } else {
+    next();
+  }
+});
+
+export default router;
