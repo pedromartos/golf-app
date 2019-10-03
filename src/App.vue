@@ -11,7 +11,28 @@
         </b-navbar-nav>
 
         <b-navbar-nav class="ml-auto">
-          <b-nav-item-dropdown text="Image Groups" right v-if="isLoggedIn">
+          <b-button
+            @click="login"
+            variant="primary"
+            size="sm"
+            v-if="!isLoggedIn"
+          >
+            <fa-icon :icon="['fab', 'facebook-square']"></fa-icon>
+            Login with Facebook
+          </b-button>
+
+          <b-dropdown
+            size="sm"
+            right
+            variant="light"
+            class="m-2 logged-in"
+            v-if="isLoggedIn"
+          >
+            <template v-slot:button-content>
+              <b-img class="pic" :src="user.picture.data.url" />
+              <span class="name">{{ user.name }}</span>
+            </template>
+
             <b-dropdown-item :to="{ name: 'new-group' }">
               <fa-icon icon="plus" />
               Create New Image Group
@@ -21,12 +42,9 @@
               <fa-icon icon="tasks"></fa-icon>
               Manage Image Groups
             </b-dropdown-item>
-          </b-nav-item-dropdown>
 
-          <b-button @click="login" variant="primary" size="sm">
-            <fa-icon :icon="['fab', 'facebook-square']"></fa-icon>
-            Login with Facebook
-          </b-button>
+            <b-dropdown-item @click="logout">Logout</b-dropdown-item>
+          </b-dropdown>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
@@ -41,6 +59,9 @@ export default {
   computed: {
     isLoggedIn: function() {
       return this.$store.getters["auth/isLoggedIn"];
+    },
+    user: function() {
+      return this.$store.state.auth.user;
     }
   },
   methods: {
@@ -51,6 +72,11 @@ export default {
         },
         { scope: "public_profile,email" }
       );
+    },
+    logout: function() {
+      window.FB.logout(response => {
+        this.$store.dispatch("auth/facebookLogin", response);
+      });
     },
     checkLoginState: function() {
       window.FB.getLoginStatus(response => {
@@ -101,6 +127,19 @@ body {
 
 .navbar {
   margin-bottom: 20px;
+
+  .logged-in {
+    > .btn {
+      padding-left: 38px;
+      .pic {
+        position: absolute;
+        left: -1px;
+        top: -1px;
+        width: 32px;
+        border-radius: 3px 0 0 3px;
+      }
+    }
+  }
 }
 
 .btn {

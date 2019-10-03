@@ -15,18 +15,18 @@ const getters = {
 const actions = {
   facebookLogin({ commit }, response) {
     commit("authRequest");
-    console.log("FB LOGIN", response);
 
     if (response.status == "connected") {
       window.FB.api("/me", "GET", { fields: ["name", "picture"] }, function(
         fbResponse
       ) {
-        console.log("API", fbResponse);
         commit("authSuccess", {
           token: response.authResponse.accessToken,
           user: fbResponse
         });
       });
+    } else if (response.status == "unknown") {
+      commit("logout");
     }
   },
   login({ commit }, user) {
@@ -102,6 +102,8 @@ const mutations = {
   logout(state) {
     state.status = "";
     state.token = "";
+    state.user = {};
+
     localStorage.removeItem("golf-token");
     localStorage.removeItem("golf-user");
   },

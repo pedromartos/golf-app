@@ -1,13 +1,6 @@
 <template>
   <div id="home">
-    <b-jumbotron header-level="4" header="Golf App">
-      <div class="buttons">
-        <b-button @click="login" variant="primary" size="sm">
-          <fa-icon :icon="['fab', 'facebook-square']"></fa-icon>
-          Login with Facebook
-        </b-button>
-      </div>
-    </b-jumbotron>
+    <b-jumbotron header-level="4" header="Golf App"></b-jumbotron>
   </div>
 </template>
 <script>
