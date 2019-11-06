@@ -68,14 +68,18 @@ export default {
     login: function() {
       window.FB.login(
         response => {
-          this.$store.dispatch("auth/facebookLogin", response);
+          this.$store.dispatch("auth/facebookLogin", response).then(() => {
+            this.$router.push({ name: "dashboard" });
+          });
         },
         { scope: "public_profile,email" }
       );
     },
     logout: function() {
       window.FB.logout(response => {
-        this.$store.dispatch("auth/facebookLogin", response);
+        this.$store.dispatch("auth/facebookLogin", response).then(() => {
+          this.$router.push({ name: "home" });
+        });
       });
     },
     checkLoginState: function() {

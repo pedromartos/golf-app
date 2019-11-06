@@ -138,14 +138,14 @@ export default {
   },
   methods: {
     saveGroup: function() {
-      this.$store.dispatch("addGroup", this.group).then(response => {
+      this.$store.dispatch("imageGroup/addGroup", this.group).then(response => {
         this.$bvToast.toast(response.msg, {
           title: response.status
         });
 
         this.$router.push({
           name: "view-group",
-          params: { groupId: response.data.id }
+          params: { groupId: response.id }
         });
       });
     },

@@ -16,7 +16,7 @@
       </p>
     </section>
 
-    <section class="body">
+    <section class="body" v-if="group.images">
       <div class="adjust-images" v-show="group.images.length > 0">
         <b-row>
           <b-col cols="12">
@@ -138,21 +138,26 @@ export default {
       });
     },
     saveGroup: function() {
-      this.$store.dispatch("saveGroup", this.group).then(response => {
-        this.$bvToast.toast(response.msg, {
-          title: response.status
+      this.$store
+        .dispatch("imageGroup/saveGroup", this.group)
+        .then(response => {
+          this.$bvToast.toast(response.msg, {
+            title: response.status
+          });
         });
-
-        console.log("RESPONSE", response.data);
-      });
     }
   },
   created: function() {
-    this.$store.dispatch("recoverGroups");
-    this.group = this.$store.getters["getGroup"](this.groupId);
-    if (this.group.position === undefined) {
-      this.group.position = {};
-    }
+    this.$store.getters["imageGroup/getGroup"](this.groupId).then(response => {
+      this.group = {
+        id: response.id,
+        ...response.properties
+      };
+
+      if (this.group.position === undefined) {
+        this.group.position = {};
+      }
+    });
   }
 };
 </script>
